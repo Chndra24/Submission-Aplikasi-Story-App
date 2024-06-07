@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.StoryApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#0D47A1</item> <!-- Dark Blue -->
+        <item name="colorPrimaryDark">#002171</item> <!-- Darker Blue for status bar -->
+        <item name="colorAccent">#1565C0</item> <!-- Accent Blue -->
+
+        <!-- Secondary color scheme -->
+        <item name="colorSecondary">#2196F3</item> <!-- Light Blue -->
+
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowEnterTransition">@android:transition/move</item>
+        <item name="android:windowExitTransition">@android:transition/move</item>
+    </style>
+</resources>

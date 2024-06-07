@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">StoryApp</string>
+    <string name="logout">Logout</string>
+    <string name="password">Password</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="name">Name</string>
+    <string name="welcome_to_the_main_activity">Welcome to the Main Activity</string>
+    <string name="login">Login</string>
+    <string name="description">Description</string>
+    <string name="add_story">Add Story</string>
+</resources>
