@@ -1,32 +1,44 @@
 package com.cwb.storyapp.ui.main
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.view.ViewCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.cachedIn
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.cwb.storyapp.R
-import com.cwb.storyapp.data.SessionManager
 import com.cwb.storyapp.api.ApiConfig
-import com.cwb.storyapp.api.GetAllStoriesResponse
-import com.cwb.storyapp.ui.adapter.StoryAdapter
+import com.cwb.storyapp.data.SessionManager
 import com.cwb.storyapp.ui.addStory.AddStoryActivity
 import com.cwb.storyapp.ui.login.LoginActivity
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.cwb.storyapp.ui.main.paging.StoryPagingAdapter
+import com.cwb.storyapp.ui.main.paging.StoryPagingSource
+import com.cwb.storyapp.ui.maps.MapsActivity
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var sessionManager: SessionManager
-    private lateinit var storyAdapter: StoryAdapter
+    private lateinit var storyPagingAdapter: StoryPagingAdapter
     private lateinit var recyclerView: RecyclerView
+    private var isPagingInitialized = false
+
+    private val addStoryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            storyPagingAdapter.refresh()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,44 +54,45 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.button_add_story).setOnClickListener {
             val intent = Intent(this, AddStoryActivity::class.java)
-            startActivity(intent)
+            addStoryLauncher.launch(intent)
         }
 
         val token = sessionManager.fetchAuthToken()
         if (token != null) {
-            fetchStories(token)
+            initPaging(token)
         } else {
             navigateToLogin()
         }
     }
 
-    private fun fetchStories(token: String) {
-        val client = ApiConfig.getApiService(token).getAllStories()
-        client.enqueue(object : Callback<GetAllStoriesResponse> {
-            override fun onResponse(call: Call<GetAllStoriesResponse>, response: Response<GetAllStoriesResponse>) {
-                if (response.isSuccessful && response.body() != null) {
-                    val stories = response.body()?.listStory ?: emptyList()
-                    storyAdapter = StoryAdapter(stories) { story, imageView ->
-                        val intent = Intent(this@MainActivity, DetailActivity::class.java)
-                        intent.putExtra("storyId", story.id)
+    private fun initPaging(token: String) {
+        if (isPagingInitialized) return
+        isPagingInitialized = true
 
-                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            this@MainActivity,
-                            imageView,
-                            ViewCompat.getTransitionName(imageView) ?: "sharedElement"
-                        )
-                        startActivity(intent, options.toBundle())
-                    }
-                    recyclerView.adapter = storyAdapter
-                } else {
-                    Log.e("MainActivity", "Failed to fetch stories: ${response.errorBody()?.string()}")
-                }
-            }
+        storyPagingAdapter = StoryPagingAdapter { story, imageView ->
+            val intent = Intent(this, DetailActivity::class.java)
+            intent.putExtra("storyId", story.id)
 
-            override fun onFailure(call: Call<GetAllStoriesResponse>, t: Throwable) {
-                Log.e("MainActivity", "Error: ${t.message}")
+            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this,
+                imageView,
+                ViewCompat.getTransitionName(imageView) ?: "sharedElement"
+            )
+            startActivity(intent, options.toBundle())
+        }
+        recyclerView.adapter = storyPagingAdapter
+
+        lifecycleScope.launch {
+            Pager(
+                config = PagingConfig(
+                    pageSize = 10,
+                    enablePlaceholders = false
+                ),
+                pagingSourceFactory = { StoryPagingSource(ApiConfig.getApiService(token)) }
+            ).flow.cachedIn(lifecycleScope).collectLatest { pagingData ->
+                storyPagingAdapter.submitData(pagingData)
             }
-        })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -94,6 +107,13 @@ class MainActivity : AppCompatActivity() {
                 navigateToLogin()
                 true
             }
+            R.id.action_map -> {
+                val token = sessionManager.fetchAuthToken()
+                val intent = Intent(this, MapsActivity::class.java)
+                intent.putExtra("TOKEN", token)
+                startActivity(intent)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -102,12 +122,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
-
-    override fun onResume() {
-        super.onResume()
-        val token = sessionManager.fetchAuthToken()
-        if (token != null) {
-            fetchStories(token)
-        }
-    }
 }
+
+
+

@@ -2,17 +2,15 @@ package com.cwb.storyapp.ui.login
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.cwb.storyapp.ui.main.MainActivity
-import com.cwb.storyapp.ui.register.RegisterActivity
-import com.cwb.storyapp.data.SessionManager
 import com.cwb.storyapp.api.ApiConfig
 import com.cwb.storyapp.api.LoginResponse
+import com.cwb.storyapp.data.SessionManager
 import com.cwb.storyapp.databinding.ActivityLoginBinding
+import com.cwb.storyapp.ui.main.MainActivity
+import com.cwb.storyapp.ui.register.RegisterActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -47,7 +45,6 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
 
-        // Set minimum length validation for password field
         binding.edLoginPassword.setMinLength(8)
     }
 

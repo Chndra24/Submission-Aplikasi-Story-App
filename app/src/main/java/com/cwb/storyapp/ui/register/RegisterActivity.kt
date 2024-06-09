@@ -2,14 +2,12 @@ package com.cwb.storyapp.ui.register
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.cwb.storyapp.data.SessionManager
 import com.cwb.storyapp.api.ApiConfig
 import com.cwb.storyapp.api.RegisterResponse
+import com.cwb.storyapp.data.SessionManager
 import com.cwb.storyapp.databinding.ActivityRegisterBinding
 import com.cwb.storyapp.ui.login.LoginActivity
 import retrofit2.Call

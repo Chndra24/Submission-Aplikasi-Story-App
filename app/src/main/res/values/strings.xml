@@ -9,4 +9,6 @@
     <string name="login">Login</string>
     <string name="description">Description</string>
     <string name="add_story">Add Story</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="map">Map</string>
 </resources>
